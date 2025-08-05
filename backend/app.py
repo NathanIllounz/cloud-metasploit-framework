@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import subprocess
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 def index():
@@ -16,14 +18,16 @@ def run_exploit():
     if not target_ip or not payload:
         return jsonify({'error': 'Missing target_ip or payload'}), 400
 
-    # Example command (you'll customize it later)
-    cmd = f"msfconsole -q -x 'use {payload}; set RHOST {target_ip}; exploit;'"
+    # Fake Response Simulation
+    fake_output = f"""
+    [+] Connecting to target {target_ip}
+    [+] Using payload: {payload}
+    [+] Exploit launched successfully!
+    [+] Session opened with {target_ip}
+    [+] Meterpreter prompt: >
+    """
 
-    try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=60)
-        return jsonify({'output': result.stdout})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({'output': fake_output})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
