@@ -6,33 +6,58 @@
 </head>
 <body>
     <h1>Metasploit Attack Launcher</h1>
+
+    <label>
+        <input type="checkbox" id="simulateToggle">
+        Simulate Mode (ON/OFF)
+    </label><br><br>
+
     <form id="attackForm">
         <label for="target_ip">Target IP:</label>
         <input type="text" id="target_ip" name="target_ip" required><br><br>
 
-        <label for="payload">Payload Path:</label>
-        <input type="text" id="payload" name="payload" placeholder="e.g., exploit/unix/ftp/vsftpd_234_backdoor" required><br><br>
+        <label for="payload">Select Payload:</label>
+        <select id="payload" name="payload" required>
+            <option value="exploit/unix/ftp/vsftpd_234_backdoor">vsftpd_234_backdoor</option>
+            <option value="exploit/windows/smb/ms08_067_netapi">ms08_067_netapi</option>
+            <option value="exploit/multi/handler">multi/handler</option>
+            <option value="exploit/windows/http/icecast_header">icecast_header</option>
+            <option value="exploit/unix/webapp/php_cgi_arg_injection">php_cgi_arg_injection</option>
+            <option value="exploit/windows/http/advantech_webaccess_upload">advantech_webaccess_upload</option>
+            <option value="exploit/linux/http/netgear_dgn1000_dnslookup">netgear_dgn1000_dnslookup</option>
+            <option value="exploit/windows/smb/psexec">psexec</option>
+            <option value="exploit/multi/samba/usermap_script">samba_usermap_script</option>
+            <option value="exploit/windows/rdp/cve_2019_0708_bluekeep_rce">bluekeep_rce</option>
+        </select><br><br>
 
         <button type="submit">Launch Attack</button>
     </form>
 
     <pre id="output" style="color: black; background-color: #f0f0f0; padding: 10px; border: 1px solid #ccc;"></pre>
 
-
     <script>
+        const output = document.getElementById('output');
+        const simulateToggle = document.getElementById('simulateToggle');
+
         document.getElementById('attackForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
             const target_ip = document.getElementById('target_ip').value;
             const payload = document.getElementById('payload').value;
+            const simulate = simulateToggle.checked;
 
-            const response = await fetch('http://localhost:5000/run_exploit', {
+            const url = simulate 
+                ? 'http://54.89.149.209:5000/simulate_attack'
+                : 'http://54.89.149.209:5000/run_exploit';
+
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ target_ip, payload })
             });
 
             const data = await response.json();
-            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            output.textContent = JSON.stringify(data, null, 2);
         });
     </script>
 </body>
