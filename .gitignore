@@ -1,7 +1,13 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .env
-*.log
+venv/
+
+# Node/Front (ליתר ביטחון)
 node_modules/
-*.sqlite3
-.vscode/
+
+# Local config
+frontend/config.json

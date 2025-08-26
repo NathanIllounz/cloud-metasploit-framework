@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Metasploit Cloud – Exploit</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand">Metasploit Cloud</div>
+    <nav class="nav">
+      <a href="index.html">בית</a>
+      <a href="auxiliary.html">Auxiliary</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h1>Exploit Launcher <span class="badge" id="modeBadge">simulate</span></h1>
+      <div class="toggle">
+        <input type="checkbox" id="simulateToggle">
+        <label for="simulateToggle">Simulate Mode (ON/OFF)</label>
+      </div>
+
+      <form id="exploitForm" style="margin-top:12px;">
+        <label for="exploit">בחר Exploit:</label>
+        <select id="exploit" required>
+          <option value="exploit/unix/ftp/vsftpd_234_backdoor" data-rport="21">vsftpd_234_backdoor (FTP)</option>
+          <option value="exploit/windows/smb/ms08_067_netapi" data-rport="445">ms08_067_netapi (SMB)</option>
+          <option value="exploit/windows/http/icecast_header" data-rport="8000">icecast_header (HTTP)</option>
+          <option value="exploit/unix/webapp/php_cgi_arg_injection" data-rport="80">php_cgi_arg_injection (HTTP)</option>
+          <option value="exploit/multi/samba/usermap_script" data-rport="139">samba_usermap_script (Samba)</option>
+        </select>
+
+        <div class="row">
+          <div class="col">
+            <label for="rhost">RHOST (יעד):</label>
+            <input id="rhost" placeholder="192.168.1.100" required />
+            <div class="small">IP או שם מארח</div>
+          </div>
+          <div class="col">
+            <label for="rport">RPORT (פורט יעד):</label>
+            <input id="rport" placeholder="ברירת מחדל לפי exploit" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="lhost">LHOST (EC2/מחשב שלך):</label>
+            <input id="lhost" placeholder="לדוגמה: 54.xxx.xxx.xxx" />
+          </div>
+          <div class="col">
+            <label for="lport">LPORT (פורט Reverse):</label>
+            <input id="lport" placeholder="4444" />
+          </div>
+        </div>
+
+        <label for="payload">Payload (אופציונלי – ידרוס ברירת מחדל):</label>
+        <select id="payload">
+          <option value="">(ברירת מחדל)</option>
+          <option value="generic/shell_reverse_tcp">generic/shell_reverse_tcp</option>
+          <option value="windows/meterpreter/reverse_tcp">windows/meterpreter/reverse_tcp</option>
+          <option value="linux/x86/meterpreter/reverse_tcp">linux/x86/meterpreter/reverse_tcp</option>
+          <option value="cmd/unix/reverse_bash">cmd/unix/reverse_bash</option>
+        </select>
+
+        <div class="toolbar">
+          <button class="btn" id="runBtn" type="submit">הרץ Exploit</button>
+          <button class="btn btn-secondary" type="button" id="copyBtn">העתק פלט</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>פלט</h2>
+      <pre id="output">—</pre>
+    </div>
+  </main>
+
+  <footer class="footer">© Metasploit Cloud Demo</footer>
+
+  <script src="app.js"></script>
+  <script>
+    function updateBadge() {
+      const badge = App.UI.qs('#modeBadge');
+      badge.textContent = App.UI.qs('#simulateToggle').checked ? 'simulate' : 'real';
+    }
+    function applyExploitDefaults() {
+      const sel = App.UI.qs('#exploit');
+      const rportInput = App.UI.qs('#rport');
+      const def = sel.options[sel.selectedIndex].getAttribute('data-rport');
+      if (def && !rportInput.value) rportInput.value = def;
+    }
+    function loadPrefs() {
+      const p = App.Prefs.load('exploitForm', {});
+      ['exploit','rhost','rport','lhost','lport','payload'].forEach(id=>{
+        if (p[id]) App.UI.qs('#'+id).value = p[id];
+      });
+      const simulate = App.Prefs.load('simulateMode', App.AppConfig?.value?.defaultMode==='simulate');
+      App.UI.qs('#simulateToggle').checked = !!simulate;
+      updateBadge();
+    }
+    function savePrefs() {
+      const data = {
+        exploit: App.UI.qs('#exploit').value,
+        rhost: App.UI.qs('#rhost').value,
+        rport: App.UI.qs('#rport').value,
+        lhost: App.UI.qs('#lhost').value,
+        lport: App.UI.qs('#lport').value,
+        payload: App.UI.qs('#payload').value
+      };
+      App.Prefs.save('exploitForm', data);
+      App.Prefs.save('simulateMode', App.UI.qs('#simulateToggle').checked);
+    }
+
+    async function init() {
+      await App.AppConfig.load();
+      loadPrefs();
+      applyExploitDefaults();
+
+      App.UI.qs('#exploit').addEventListener('change', applyExploitDefaults);
+      App.UI.qs('#simulateToggle').addEventListener('change', updateBadge);
+
+      App.UI.qs('#copyBtn').addEventListener('click', ()=>{
+        const text = App.UI.qs('#output').textContent || '';
+        if (text.trim()) App.UI.copy(text);
+      });
+
+      App.UI.qs('#exploitForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const runBtn = App.UI.qs('#runBtn');
+        const out = App.UI.qs('#output');
+
+        // ולידציה ידידותית
+        const rhost = App.UI.qs('#rhost').value.trim();
+        if (!App.isIpLike(rhost)) { App.UI.toast('RHOST לא נראה תקין', 'success'); return; }
+
+        savePrefs();
+        out.textContent = 'מריץ...';
+        App.UI.setLoading(runBtn, true);
+
+        const body = {
+          EXPLOIT: App.UI.qs('#exploit').value,
+          RHOST: rhost,
+          RPORT: App.UI.qs('#rport').value.trim(),
+          LHOST: App.UI.qs('#lhost').value.trim(),
+          LPORT: App.UI.qs('#lport').value.trim(),
+          PAYLOAD: App.UI.qs('#payload').value
+        };
+        const simulate = App.UI.qs('#simulateToggle').checked;
+
+        try {
+          const data = simulate
+            ? await App.Net.post('/simulate_attack', { target_ip: body.RHOST, payload: body.EXPLOIT })
+            : await App.Net.post('/api/exploit/run', body);
+
+          out.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+          out.textContent = `שגיאה: ${err.message}`;
+        } finally {
+          App.UI.setLoading(runBtn, false);
+        }
+      });
+    }
+    init();
+  </script>
+</body>
+</html>

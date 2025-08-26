@@ -1,57 +1,46 @@
-# Cloud Metasploit Framework ☁️💥
+# Cloud Metasploit Framework
 
-A cloud-based system that provides a web interface to run Metasploit payloads remotely via a Kali Linux server.  
-This project is designed for cybersecurity labs, penetration testing practice, and automation of exploit workflows.
+A Cloud-based Metasploit Automation Framework that allows you to launch real penetration tests or simulated attacks via a web interface.
 
----
+## 🚀 Features:
+- Frontend interface to trigger attacks (Real / Simulated)
+- Simulate Mode for safe demonstrations
+- Real Mode that connects to Metasploit Framework in AWS EC2
+- Payload Selection Dropdown (10+ famous exploits)
+- Full Backend-Frontend communication over HTTP
+- Cloud-Based architecture (AWS EC2 + Flask + Metasploit)
 
-## 📚 Project Overview
+## 🖥️ Architecture:
+1. **Frontend (HTML+JS):** User selects target IP and payload, with a Simulate Mode toggle.
+2. **Backend (Flask API on EC2):** Receives commands and runs Metasploit commands (or returns simulated output).
+3. **Metasploit Framework (on EC2):** Executes real exploits and returns output to the frontend.
 
-### Components:
-1. **Frontend UI** – Simple HTML form for selecting payloads and target IPs.
-2. **Backend API (Python Flask)** – Receives requests and triggers Metasploit commands.
-3. **Kali Linux Server (Cloud)** – Executes Metasploit on a remote cloud machine (AWS EC2).
-4. **Target VM (Metasploitable2 / Windows XP)** – The vulnerable machine being attacked.
+## 🛠️ Technologies Used:
+- Python3 + Flask + Flask-CORS
+- Metasploit Framework (Snap Install)
+- HTML, CSS, JavaScript (Frontend)
+- AWS EC2 (Ubuntu 22.04)
 
----
+## ⚙️ How to Deploy:
+1. Launch Ubuntu EC2 in AWS (ports 22, 5000, 4444 open).
+2. Install Metasploit & Flask on the instance.
+3. Clone this repo and run:
+    ```bash
+    python3 app.py
+    ```
+4. Open `frontend/index.html` locally and connect to your EC2 Public IP.
+5. Toggle Simulate Mode ON/OFF and select Payloads to trigger attacks.
 
-## ⚙️ Technologies Used
-- Python 3.x + Flask
-- HTML + JavaScript (Vanilla)
-- AWS EC2 (Kali Linux)
-- Metasploit Framework
-- Git + GitHub
+## 📋 Future Improvements:
+- LHOST dynamic configuration
+- Persistent Deploy Mode (tmux/supervisor)
+- Frontend design upgrade (Dashboard look)
+- Logs & Session Tracking
 
----
-
-## 🛠️ Project Structure
-cloud-metasploit-framework/
-│
-├── backend/ # Flask API Server
-│ ├── app.py
-│ └── requirements.txt
-│
-├── frontend/ # HTML Form Interface
-│ └── index.html
-│
-├── deployment/ # Kali EC2 setup scripts
-│ └── setup_kali.sh
-│
-├── docs/ # Architecture & Threat Models
-│ ├── architecture.md
-│ └── threats_stride.md
-│
-├── .gitignore
-├── README.md
-└── LICENSE
-
+## ⚠️ Legal Notice:
+This project is for educational purposes only. Do not perform unauthorized attacks on systems you do not own or have explicit permission to test.
 
 ---
 
-## 🚀 How to Run Locally
-
-### 1. Clone the repository:
-```bash
-git clone https://github.com/your-username/cloud-metasploit-framework.git
-cd cloud-metasploit-framework
-
+## Author:
+Nathan Illounz

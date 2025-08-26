@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auxiliary Tools</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand">Metasploit Cloud</div>
+    <nav class="nav">
+      <a href="index.html">בית</a>
+      <a href="attack.html">Exploit</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h1>Auxiliary</h1>
+      <label for="tool">בחר כלי:</label>
+      <select id="tool">
+        <option value="portscan_tcp">TCP Port Scan</option>
+        <option value="http_version">HTTP Version</option>
+      </select>
+
+      <form id="toolForm" style="margin-top:12px;">
+        <div id="dynamicFields"></div>
+        <div class="toolbar">
+          <button class="btn" id="runBtn" type="submit">הרץ</button>
+          <button class="btn btn-secondary" type="button" id="copyBtn">העתק פלט</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>פלט</h2>
+      <pre id="output">—</pre>
+    </div>
+  </main>
+
+  <footer class="footer">© Metasploit Cloud Demo</footer>
+
+  <script src="app.js"></script>
+  <script>
+    const toolSchemas = {
+      portscan_tcp: [
+        { key:'RHOSTS', label:'RHOSTS (IP/טווח)', placeholder:'192.168.1.10-20', required:true },
+        { key:'PORTS',  label:'PORTS (טווח פורטים)', placeholder:'1-1000', required:true },
+        { key:'THREADS',label:'THREADS (ברירת מחדל 10)', placeholder:'10', required:false }
+      ],
+      http_version: [
+        { key:'RHOSTS', label:'RHOSTS (IP/דומיין)', placeholder:'example.com או 192.168.1.50', required:true },
+        { key:'RPORT',  label:'RPORT (ברירת מחדל 80)', placeholder:'80', required:false }
+      ]
+    };
+
+    function renderFields(tool){
+      const wrap = App.UI.qs('#dynamicFields');
+      wrap.innerHTML = '';
+      (toolSchemas[tool] || []).forEach(f => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <label>${f.label}${f.required ? ' *' : ''}</label>
+          <input type="text" name="${f.key}" placeholder="${f.placeholder || ''}" ${f.required ? 'required' : ''} />
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    function loadPrefs(tool) {
+      const p = App.Prefs.load(`aux_${tool}`, {});
+      const wrap = App.UI.qs('#dynamicFields');
+      Object.entries(p).forEach(([k,v])=>{
+        const el = wrap.querySelector(`[name="${k}"]`);
+        if (el) el.value = v;
+      });
+    }
+
+    function savePrefs(tool) {
+      const wrap = App.UI.qs('#dynamicFields');
+      const inputs = [...wrap.querySelectorAll('input')];
+      const obj = {};
+      inputs.forEach(i=> obj[i.name] = i.value);
+      App.Prefs.save(`aux_${tool}`, obj);
+    }
+
+    async function init(){
+      await App.AppConfig.load();
+
+      const toolSelect = App.UI.qs('#tool');
+      const outputEl = App.UI.qs('#output');
+      const runBtn = App.UI.qs('#runBtn');
+
+      function onToolChange(){
+        renderFields(toolSelect.value);
+        loadPrefs(toolSelect.value);
+      }
+
+      toolSelect.addEventListener('change', onToolChange);
+      onToolChange();
+
+      App.UI.qs('#copyBtn').addEventListener('click', ()=>{
+        const text = outputEl.textContent || '';
+        if (text.trim()) App.UI.copy(text);
+      });
+
+      App.UI.qs('#toolForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        outputEl.textContent = 'מריץ...';
+        App.UI.setLoading(runBtn, true);
+
+        const formData = new FormData(e.target);
+        const payload = {};
+        formData.forEach((v,k)=> payload[k] = v);
+
+        // ברירות מחדל
+        if (toolSelect.value === 'portscan_tcp' && !payload.THREADS) payload.THREADS = '10';
+        if (toolSelect.value === 'http_version' && !payload.RPORT)   payload.RPORT = '80';
+
+        // ולידציה קלה
+        if (!payload.RHOSTS) { App.UI.toast('RHOSTS חסר'); App.UI.setLoading(runBtn,false); return; }
+
+        savePrefs(toolSelect.value);
+
+        const endpointMap = {
+          portscan_tcp: '/api/aux/portscan_tcp',
+          http_version: '/api/aux/http_version'
+        };
+
+        try {
+          const data = await App.Net.post(endpointMap[toolSelect.value], payload);
+          outputEl.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+          outputEl.textContent = `שגיאה: ${err.message}`;
+        } finally {
+          App.UI.setLoading(runBtn, false);
+        }
+      });
+    }
+    init();
+  </script>
+</body>
+</html>
