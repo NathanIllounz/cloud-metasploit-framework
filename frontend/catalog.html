@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Exploit Catalog</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container" style="padding-bottom:40px">
+    <header class="site-header" style="margin-bottom:18px;">
+      <div class="brand">
+        <div class="logo">CM</div>
+        <div>
+          <h1>Exploit & Payload Catalog</h1>
+          <p class="muted">Short explanations and usage hints for classroom use</p>
+        </div>
+      </div>
+      <nav>
+        <a href="index.html" class="btn ghost small">Home</a>
+        <a href="attack.html" class="btn ghost small">Attack Page</a>
+        <a href="auxiliary.html" class="btn ghost small">Auxiliary</a>
+      </nav>
+    </header>
+
+    <div class="card">
+      <div class="search-row">
+        <input id="search" class="search-input" placeholder="Search by name, id or description...">
+        <select id="filter-payload" style="width:220px; padding:8px; border-radius:8px; border:1px solid #e6eef6;">
+          <option value="">All payloads</option>
+        </select>
+      </div>
+
+      <div id="list"></div>
+    </div>
+  </main>
+
+<script>
+(async function(){
+  const resp = await fetch('exploits.json');
+  const items = await resp.json();
+
+  const listEl = document.getElementById('list');
+  const search = document.getElementById('search');
+  const filter = document.getElementById('filter-payload');
+
+  // build payload filter options
+  const payloadSet = new Set();
+  items.forEach(it => (it.payloads||[]).forEach(p => payloadSet.add(p)));
+  Array.from(payloadSet).sort().forEach(p => {
+    const opt = document.createElement('option'); opt.value = p; opt.textContent = p; filter.appendChild(opt);
+  });
+
+  function render(filtered){
+    listEl.innerHTML = '';
+    filtered.forEach(it => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.marginBottom = '12px';
+      card.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <div>
+            <div style="font-weight:700">${it.title} <span style="color:var(--muted); font-weight:600">(${it.id})</span></div>
+            <div style="color:var(--muted); margin-top:6px">${it.description}</div>
+          </div>
+          <div style="text-align:right">
+            ${(it.payloads||[]).map(p => `<div class="tag" style="margin-bottom:6px">${p}</div>`).join('')}
+          </div>
+        </div>
+        <div style="margin-top:10px; color:var(--muted)">
+          <div><strong>Required fields:</strong> ${(it.required_fields||[]).join(', ') || 'none'}</div>
+          <div style="margin-top:6px"><strong>Notes:</strong> ${it.notes || '-'}</div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  }
+
+  function applyFilters(){
+    const q = (search.value||'').toLowerCase();
+    const pfilter = filter.value;
+    let filtered = items.filter(it => {
+      return (!q || (it.title+it.id+it.description).toLowerCase().includes(q)) &&
+             (!pfilter || (it.payloads||[]).includes(pfilter));
+    });
+    render(filtered);
+  }
+
+  search.addEventListener('input', applyFilters);
+  filter.addEventListener('change', applyFilters);
+
+  // initial render
+  render(items);
+})();
+</script>
+</body>
+</html>

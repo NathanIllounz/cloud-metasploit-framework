@@ -1,0 +1,7 @@
+{
+  "apiBase": "http://<EC2_PUBLIC_IP>:5000",
+  "simulate_mode_default": true,
+  "allowed_target_ranges": ["192.168.56.0/24", "10.0.0.0/8"],
+  "log_directory": "./logs",
+  "timeout_seconds": 300
+}

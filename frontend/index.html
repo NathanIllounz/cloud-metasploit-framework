@@ -1,36 +1,59 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Metasploit Cloud Portal</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cloud Metasploit Framework</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="brand">Metasploit Cloud Portal</div>
-    <nav class="nav">
-      <a href="index.html">בית</a>
-      <a href="attack.html">Exploit</a>
-      <a href="auxiliary.html">Auxiliary</a>
-    </nav>
-  </header>
-
   <main class="container">
-    <div class="card">
-      <h1>ברוך הבא</h1>
-      <p>בחרו מהפעולות הבאות:</p>
-      <div class="row" style="margin-top:12px;">
-        <div class="col">
-          <a class="btn" href="attack.html">Exploit / Simulate</a>
+<header class="site-header hero">
+  <div class="brand">
+    <div class="logo">CM</div>
+    <div class="lead">
+      <h2>Cloud Metasploit Framework</h2>
+      <p class="muted">A safe, web-based environment for teaching penetration testing and red-team techniques in isolated labs.</p>
+    </div>
+  </div>
+  <nav>
+    <a href="attack.html" class="btn">Start Attack</a>
+    <a href="catalog.html" class="btn ghost">Exploit Catalog</a>
+    <a href="auxiliary.html" class="btn ghost">Auxiliary</a>
+    <!-- global toggle appended here by app.js -->
+  </nav>
+</header>
+    <div class="grid" style="grid-template-columns: 1fr; gap:18px;">
+      <div class="card">
+        <h3>Overview</h3>
+        <p class="muted">This platform provides simulation and controlled execution modes for Metasploit modules, allowing instructors to create reproducible labs and students to practice safely.</p>
+        <ul>
+          <li>Simulate attacks without network traffic.</li>
+          <li>Run real lab attacks against allow-listed VMs.</li>
+          <li>Job history and downloadable outputs.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="display:flex; gap:12px; align-items:center;">
+        <div style="flex:1">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="attack.html">Attack Page</a></li>
+            <li><a href="catalog.html">Exploit Catalog</a></li>
+            <li><a href="auxiliary.html">Auxiliary Tools</a></li>
+          </ul>
         </div>
-        <div class="col">
-          <a class="btn" href="auxiliary.html">Auxiliary (סריקות/סיוע)</a>
+        <div style="width:260px; text-align:center;">
+          <div style="font-size:14px; color:var(--muted)">Authors</div>
+          <div style="font-weight:700; margin-top:8px">Nathan Illouz</div>
+          <div style="color:var(--muted); margin-top:6px">Educational use only</div>
         </div>
       </div>
-      <p style="margin-top:14px;color:#64748b">טיפ: עדכון כתובת השרת מתבצע רק ב־<span class="kbd">frontend/config.json</span>.</p>
     </div>
-  </main>
 
-  <footer class="footer">© Metasploit Cloud Demo</footer>
+    <footer style="margin-top:18px; text-align:center; color:var(--muted)">
+      © Cloud Metasploit Framework — For lab use only.
+    </footer>
+  </main>
 </body>
 </html>

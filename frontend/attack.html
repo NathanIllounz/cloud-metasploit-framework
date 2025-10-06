@@ -1,168 +1,118 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Metasploit Cloud – Exploit</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cloud Metasploit — Attack</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="brand">Metasploit Cloud</div>
-    <nav class="nav">
-      <a href="index.html">בית</a>
-      <a href="auxiliary.html">Auxiliary</a>
-    </nav>
-  </header>
-
   <main class="container">
-    <div class="card">
-      <h1>Exploit Launcher <span class="badge" id="modeBadge">simulate</span></h1>
-      <div class="toggle">
-        <input type="checkbox" id="simulateToggle">
-        <label for="simulateToggle">Simulate Mode (ON/OFF)</label>
+<header class="site-header hero">
+  <div class="brand">
+    <div class="logo">CM</div>
+    <div class="lead">
+      <h2>Cloud Metasploit</h2>
+      <p class="muted">Adaptive attack interface — choose an exploit and the form will show only the required fields.</p>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html" class="btn ghost small">Home</a>
+    <a href="catalog.html" class="btn ghost small">Exploit Catalog</a>
+    <a href="auxiliary.html" class="btn ghost small">Auxiliary</a>
+    <!-- global toggle appended here by app.js -->
+  </nav>
+</header>
+    <div class="grid">
+      <div class="card">
+        <div style="margin-bottom:12px">
+          <label>Choose an exploit/template
+            <select id="exploit-select"></select>
+          </label>
+        </div>
+
+        <form id="exploit-form">
+          <div class="form-row">
+            <div class="col">
+              <label>Exploit (auto)
+                <input id="exploit" type="text" readonly>
+              </label>
+            </div>
+            <div class="col">
+              <label>Payload
+                <select id="payload-select" disabled>
+                  <option value="">— choose payload —</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <label>RHOST (target IP)
+            <input id="rhost" type="text" placeholder="192.168.56.101" disabled>
+          </label>
+
+          <div class="form-row">
+            <div class="col">
+              <label>RPORT
+                <input id="rport" type="number" placeholder="80" disabled>
+              </label>
+            </div>
+            <div class="col">
+              <label>LHOST
+                <input id="lhost" type="text" placeholder="10.0.0.5" disabled>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="col">
+              <label>LPORT
+                <input id="lport" type="number" placeholder="4444" disabled>
+              </label>
+            </div>
+            <div class="col">
+              <label>Mode
+                <select id="mode">
+                  <option value="simulate">Simulate</option>
+                  <option value="real">Real</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div style="margin-top:14px; display:flex; gap:8px;">
+            <button id="run-btn" class="btn" type="submit">Run</button>
+            <button id="clear-btn" class="btn ghost" type="button">Clear</button>
+            <button id="fill-example" class="btn ghost" type="button">Fill Example</button>
+          </div>
+        </form>
       </div>
 
-      <form id="exploitForm" style="margin-top:12px;">
-        <label for="exploit">בחר Exploit:</label>
-        <select id="exploit" required>
-          <option value="exploit/unix/ftp/vsftpd_234_backdoor" data-rport="21">vsftpd_234_backdoor (FTP)</option>
-          <option value="exploit/windows/smb/ms08_067_netapi" data-rport="445">ms08_067_netapi (SMB)</option>
-          <option value="exploit/windows/http/icecast_header" data-rport="8000">icecast_header (HTTP)</option>
-          <option value="exploit/unix/webapp/php_cgi_arg_injection" data-rport="80">php_cgi_arg_injection (HTTP)</option>
-          <option value="exploit/multi/samba/usermap_script" data-rport="139">samba_usermap_script (Samba)</option>
-        </select>
-
-        <div class="row">
-          <div class="col">
-            <label for="rhost">RHOST (יעד):</label>
-            <input id="rhost" placeholder="192.168.1.100" required />
-            <div class="small">IP או שם מארח</div>
-          </div>
-          <div class="col">
-            <label for="rport">RPORT (פורט יעד):</label>
-            <input id="rport" placeholder="ברירת מחדל לפי exploit" />
+      <aside class="card">
+        <div id="exploit-info">
+          <div class="info-title">Exploit Info</div>
+          <div id="info-desc" style="margin-bottom:8px">Choose an exploit to see details.</div>
+          <div id="info-tags"></div>
+          <div style="margin-top:12px">
+            <div style="font-weight:700; margin-bottom:6px">Notes</div>
+            <div id="info-notes" style="color:var(--muted)"></div>
           </div>
         </div>
 
-        <div class="row">
-          <div class="col">
-            <label for="lhost">LHOST (EC2/מחשב שלך):</label>
-            <input id="lhost" placeholder="לדוגמה: 54.xxx.xxx.xxx" />
-          </div>
-          <div class="col">
-            <label for="lport">LPORT (פורט Reverse):</label>
-            <input id="lport" placeholder="4444" />
+        <hr style="margin:14px 0">
+
+        <div>
+          <div style="font-weight:700; margin-bottom:6px">Output</div>
+          <pre id="output" class="output-area"></pre>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <button id="copy-btn" class="btn small">Copy</button>
+            <a id="download-link" style="display:none" class="btn ghost small">Download</a>
           </div>
         </div>
-
-        <label for="payload">Payload (אופציונלי – ידרוס ברירת מחדל):</label>
-        <select id="payload">
-          <option value="">(ברירת מחדל)</option>
-          <option value="generic/shell_reverse_tcp">generic/shell_reverse_tcp</option>
-          <option value="windows/meterpreter/reverse_tcp">windows/meterpreter/reverse_tcp</option>
-          <option value="linux/x86/meterpreter/reverse_tcp">linux/x86/meterpreter/reverse_tcp</option>
-          <option value="cmd/unix/reverse_bash">cmd/unix/reverse_bash</option>
-        </select>
-
-        <div class="toolbar">
-          <button class="btn" id="runBtn" type="submit">הרץ Exploit</button>
-          <button class="btn btn-secondary" type="button" id="copyBtn">העתק פלט</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h2>פלט</h2>
-      <pre id="output">—</pre>
+      </aside>
     </div>
   </main>
 
-  <footer class="footer">© Metasploit Cloud Demo</footer>
-
-  <script src="app.js"></script>
-  <script>
-    function updateBadge() {
-      const badge = App.UI.qs('#modeBadge');
-      badge.textContent = App.UI.qs('#simulateToggle').checked ? 'simulate' : 'real';
-    }
-    function applyExploitDefaults() {
-      const sel = App.UI.qs('#exploit');
-      const rportInput = App.UI.qs('#rport');
-      const def = sel.options[sel.selectedIndex].getAttribute('data-rport');
-      if (def && !rportInput.value) rportInput.value = def;
-    }
-    function loadPrefs() {
-      const p = App.Prefs.load('exploitForm', {});
-      ['exploit','rhost','rport','lhost','lport','payload'].forEach(id=>{
-        if (p[id]) App.UI.qs('#'+id).value = p[id];
-      });
-      const simulate = App.Prefs.load('simulateMode', App.AppConfig?.value?.defaultMode==='simulate');
-      App.UI.qs('#simulateToggle').checked = !!simulate;
-      updateBadge();
-    }
-    function savePrefs() {
-      const data = {
-        exploit: App.UI.qs('#exploit').value,
-        rhost: App.UI.qs('#rhost').value,
-        rport: App.UI.qs('#rport').value,
-        lhost: App.UI.qs('#lhost').value,
-        lport: App.UI.qs('#lport').value,
-        payload: App.UI.qs('#payload').value
-      };
-      App.Prefs.save('exploitForm', data);
-      App.Prefs.save('simulateMode', App.UI.qs('#simulateToggle').checked);
-    }
-
-    async function init() {
-      await App.AppConfig.load();
-      loadPrefs();
-      applyExploitDefaults();
-
-      App.UI.qs('#exploit').addEventListener('change', applyExploitDefaults);
-      App.UI.qs('#simulateToggle').addEventListener('change', updateBadge);
-
-      App.UI.qs('#copyBtn').addEventListener('click', ()=>{
-        const text = App.UI.qs('#output').textContent || '';
-        if (text.trim()) App.UI.copy(text);
-      });
-
-      App.UI.qs('#exploitForm').addEventListener('submit', async (e)=>{
-        e.preventDefault();
-        const runBtn = App.UI.qs('#runBtn');
-        const out = App.UI.qs('#output');
-
-        // ולידציה ידידותית
-        const rhost = App.UI.qs('#rhost').value.trim();
-        if (!App.isIpLike(rhost)) { App.UI.toast('RHOST לא נראה תקין', 'success'); return; }
-
-        savePrefs();
-        out.textContent = 'מריץ...';
-        App.UI.setLoading(runBtn, true);
-
-        const body = {
-          EXPLOIT: App.UI.qs('#exploit').value,
-          RHOST: rhost,
-          RPORT: App.UI.qs('#rport').value.trim(),
-          LHOST: App.UI.qs('#lhost').value.trim(),
-          LPORT: App.UI.qs('#lport').value.trim(),
-          PAYLOAD: App.UI.qs('#payload').value
-        };
-        const simulate = App.UI.qs('#simulateToggle').checked;
-
-        try {
-          const data = simulate
-            ? await App.Net.post('/simulate_attack', { target_ip: body.RHOST, payload: body.EXPLOIT })
-            : await App.Net.post('/api/exploit/run', body);
-
-          out.textContent = JSON.stringify(data, null, 2);
-        } catch (err) {
-          out.textContent = `שגיאה: ${err.message}`;
-        } finally {
-          App.UI.setLoading(runBtn, false);
-        }
-      });
-    }
-    init();
-  </script>
+<script src="app.js"></script>
 </body>
 </html>
