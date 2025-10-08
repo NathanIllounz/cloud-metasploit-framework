@@ -1,6 +1,3 @@
-// frontend/app.js
-// Full frontend logic: config, global mode toggle, realistic simulate helpers,
-// randomized exploit templates, Attack page and Auxiliary page handlers.
 
 (async function () {
   // ---------- CONFIG & DATA ----------
